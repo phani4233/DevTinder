@@ -3,6 +3,7 @@
 const express = require("express");
 const {connectDB} =require("./config/database")
 const {adminAuth,userAuth} = require("./middlewares/auth")
+const User = require("./models/user")
 
 // Create an Express application instance
 // 'app' is the main object used to define routes and middleware
@@ -11,6 +12,30 @@ const app = express();
 app.get("/user",userAuth,(req,res) => {
     console.log("userDetails---",req.query)
     res.send({name:"phani",age:"25"})
+
+})
+
+app.post("/signup",async(req,res) => {
+  const user = new User({
+    firstName:"Porandla",
+    lastName:"Naga Phani",
+    emailId:"porandlanagaphani@gmail.com",
+    age:"age"
+  })
+
+  try{
+    await user.save()
+    res.send("user added successfully")
+  }catch(err){
+    console.error("something went wrong,the error is :",err.message)
+     res.status(400).json({
+      success: false,
+      message: err.message
+    });
+  }
+  
+
+  
 
 })
 

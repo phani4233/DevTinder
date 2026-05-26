@@ -57,7 +57,7 @@ const connectDB = async () => {
         // environment variable instead of hardcoding it.
         // ----------------------------------------------------
         await mongoose.connect(
-            "mongodb+srv://phaninaga360_db_user:aiOGqb7LLcoYRClI@cluster0.hhi4hza.mongodb.net/"
+            "mongodb+srv://phaninaga360_db_user:aiOGqb7LLcoYRClI@cluster0.hhi4hza.mongodb.net/devTinder"
         );
 
         // ----------------------------------------------------
