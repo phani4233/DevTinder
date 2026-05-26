@@ -112,11 +112,71 @@ app.delete("/admin/deleteUser",(req,res) => {
 })
 
 
-// Start the server on port 3000
-// The server will listen for incoming requests at http://localhost:3000
-await connectDB()
-app.listen(3000, () => {
+// ------------------------------------------------------------
+// Step 1: Attempt to establish a connection to MongoDB
+//
+// connectDB() is an asynchronous function that returns a Promise.
+//
+// Possible outcomes:
+// ✅ Promise resolves  -> Database connection successful
+// ❌ Promise rejects   -> Database connection failed
+//
+// We use .then() and .catch() to handle these outcomes.
+// ------------------------------------------------------------
+connectDB()
 
-    // This callback runs once the server starts successfully
-    console.log("server is successfully running");
-});
+  // ----------------------------------------------------------
+  // Step 2: This block runs ONLY if the database connection
+  // was established successfully.
+  //
+  // We start the Express server only after MongoDB is ready.
+  //
+  // Why?
+  // Imagine a user hits an API endpoint that needs to read
+  // data from MongoDB. If the server starts before the DB is
+  // connected, those requests could fail.
+  //
+  // Therefore:
+  // 1. Connect to MongoDB
+  // 2. Start the Express server
+  // ----------------------------------------------------------
+  .then(() => {
+
+    // --------------------------------------------------------
+    // Start the Express server and listen for incoming HTTP
+    // requests on port 3000.
+    //
+    // After this, users can access:
+    // http://localhost:3000
+    // --------------------------------------------------------
+    app.listen(3000, () => {
+
+      // ------------------------------------------------------
+      // This callback executes once the server has started
+      // successfully and is ready to accept requests.
+      // ------------------------------------------------------
+      console.log("Server is successfully running");
+    });
+  })
+
+  // ----------------------------------------------------------
+  // Step 3: This block runs if MongoDB connection fails.
+  //
+  // Common reasons:
+  // - Wrong MongoDB connection string
+  // - Invalid username/password
+  // - Current IP address not whitelisted in Atlas
+  // - No internet connection
+  // - MongoDB Atlas cluster is paused/unavailable
+  //
+  // Since the database is unavailable, we do NOT start the
+  // Express server.
+  // ----------------------------------------------------------
+  .catch((err) => {
+
+    // Log the actual error message for debugging.
+    console.error(
+      "Cannot connect to database:",
+      err.message
+    );
+  });
