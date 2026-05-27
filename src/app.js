@@ -3,41 +3,47 @@
 const express = require("express");
 const {connectDB} =require("./config/database")
 const {adminAuth,userAuth} = require("./middlewares/auth")
-const User = require("./models/user")
+const {sigupAction,getUserByEmail} = require("./controllers/userController")
+const {getFullFeed} = require("./controllers/feedController")
+
 
 // Create an Express application instance
 // 'app' is the main object used to define routes and middleware
 const app = express();
 
-app.get("/user",userAuth,(req,res) => {
-    console.log("userDetails---",req.query)
-    res.send({name:"phani",age:"25"})
+// Middleware that tells Express to automatically parse incoming JSON data
+// from the request body.
+//
+// Example:
+// Client sends:
+// {
+//    "name": "Phani",
+//    "age": 25
+// }
+//
+// Without express.json():
+// req.body will be undefined
+//
+// With express.json():
+// req.body becomes:
+// { name: "Phani", age: 25 }
+//
+// Mostly used in POST, PUT, PATCH requests when frontend/backend
+// sends data in JSON format.
+app.use(express.json())
 
-})
+// app.get("/user",userAuth,(req,res) => {
+//     console.log("userDetails---",req.query)
+//     res.send({name:"phani",age:"25"})
 
-app.post("/signup",async(req,res) => {
-  const user = new User({
-    firstName:"Porandla",
-    lastName:"Naga Phani",
-    emailId:"porandlanagaphani@gmail.com",
-    age:"age"
-  })
+// })
 
-  try{
-    await user.save()
-    res.send("user added successfully")
-  }catch(err){
-    console.error("something went wrong,the error is :",err.message)
-     res.status(400).json({
-      success: false,
-      message: err.message
-    });
-  }
-  
+app.post("/signup",sigupAction)
 
-  
+app.get("/feed",getFullFeed)
 
-})
+//get user by email
+app.get("/user",getUserByEmail)
 
 app.use("/",(err,req,res,next) => {
     if(err){
@@ -124,6 +130,7 @@ app.use("/",(err,req,res,next) => {
 // );
 
 app.use("/admin",adminAuth)
+
 
 app.get ("/admin/getAllData",(req,res) => {
  
