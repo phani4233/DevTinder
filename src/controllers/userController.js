@@ -1,8 +1,49 @@
 // Importing the User model from models folder
 // This model is used to interact with the users collection in MongoDB
 const User = require("../models/user")
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 
+const loginAction = async(req,res) => {
+  try{
+    const {emailId,password} = req.body
+  
+    const user = await User.findOne({emailId})
+    if(!user){
+      return res.status(400).send("invalid credentials")
+    }
+
+    const isPasswordMatch = await user.matchPasswords(password)
+    if(!isPasswordMatch){
+      return res.status(400).send("invalid credentials")
+    }
+
+    const token =await user.getJwt()
+    res.cookie("token",token)
+    res.send(user)
+
+  }catch(err){
+    res.status(400).json({
+      success:false,
+      message:err.message
+
+    })
+
+  }
+}
+
+const getProfileByCookie = async(req,res) => {
+  try{
+    user = req.user
+    res.send(user)
+  }catch(err){
+    res.status(400).json({
+      success: false,
+      message: err.message
+    });
+  } 
+}
 
 // Controller function for signup API
 // This function handles incoming signup requests
@@ -49,7 +90,7 @@ const sigupAction = async(req,res) => {
 
   // try block is used to handle successful database operation
   try{
-
+    const {firstName,lastName,emailId,password} = req.body
     // Creating a new mongoose document
     //
     // req.body data will be inserted into User model
@@ -62,7 +103,14 @@ const sigupAction = async(req,res) => {
     //
     // new User(req.body)
     // creates a mongoose object/document
-    const user = new User(req.body)
+    const passwordHash = await bcrypt.hash(password,10)
+    console.log("passwordHash----",passwordHash)
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password:passwordHash
+    })
 
 
     // Saving document into MongoDB database
@@ -128,6 +176,50 @@ const getUserByEmail = async(req,res) => {
 
 }
 
+const deleteUserById = async(req,res) => {
+    
+    console.log("req---",req.body)
+    const {userId} = req.body
+    if(!req.body || Object.keys(req.body).length ===  0 || !userId){
+      console.log("error----")
+      return res.status(400).send("insufficient data")
+    }
+
+    try{
+      await User.findByIdAndDelete(userId)
+      res.send("user successfully deleted")
+
+    }catch(err){
+      res.status(400).send("something might be wrong :",err.message)
+    }
+}
+
+  const updateUserDetails = async(req,res) => {
+    if(!req.body || Object.keys(req.body).length ===  0){
+          return res.status(400).send("insuffient data")
+      }
+    const userId = req.params?.userId;
+    const userBody = req.body;
+    
+    const ALLOWED_UPDATES = [
+      "photoUrl","about","gender","age","skills"
+    ]
+
+    const isUpdated = Object.keys(userBody).every((key) => ALLOWED_UPDATES.includes(key))
+    if(!isUpdated){
+      return res.status(400).send("update not allowed")
+    }
+
+    try{
+
+      const newUser = await User.findByIdAndUpdate(userId,userBody,{returnDocument:'after',runValidators:'true'})
+      res.send(newUser)
+
+    }catch(err){
+      res.status(400).send("something might be wrong :",err.message)
+    }
+  }
+
 
 
 // Exporting controller function
@@ -136,4 +228,4 @@ const getUserByEmail = async(req,res) => {
 //
 // Example:
 // const { sigupAction } = require("../controllers/userController")
-module.exports = {sigupAction,getUserByEmail}
+module.exports = {sigupAction,getUserByEmail,deleteUserById,updateUserDetails,loginAction,getProfileByCookie}

@@ -1,13 +1,31 @@
-const adminAuth = (req,res,next) => {
+const jwt = require('jsonwebtoken')
+const User = require("../models/user")
 
-  console.log("checking if user is authenticated or not")
+const adminAuth = async(req,res,next) => {
+  try{
+    const {token} = req.cookies
+    console.log("token----",token)
+    if (!token){
+      return res.status(400).json({
+        success:false,
+        message:"message something went wrong please try again"
+      })
+    }
 
-  let token = "xyz"
-  let userIsAuthenticated = token === "xyz"
-  if(userIsAuthenticated){
+    const decodedData = jwt.verify(token,"Phani!@34")
+    const {_id} = decodedData
+    const user  = await User.findById(_id)
+    if(!user){
+       return res.status(400).json({
+        success:false,
+        message:"message something went wrong please try again"
+      })
+    }
+
+    req.user = user
     next()
-  }else{
-    res.status(401).send("user not authenticated")
+  }catch(err){
+    res.status(401).send("something went wrong please try again"+err)
   }
 }
 

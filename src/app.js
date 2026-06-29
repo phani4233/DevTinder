@@ -1,9 +1,12 @@
 // Import the Express library
 // Express is a lightweight framework used to build web servers in Node.js
 const express = require("express");
+const cookieParser = require("cookie-parser")
 const {connectDB} =require("./config/database")
 const {adminAuth,userAuth} = require("./middlewares/auth")
-const {sigupAction,getUserByEmail} = require("./controllers/userController")
+const {loginValidation} = require("./validations/loginValidation")
+const {signUpValidation} = require("./validations/signUpValidation")
+const {sigupAction,getUserByEmail,deleteUserById,updateUserDetails,loginAction,getProfileByCookie} = require("./controllers/userController")
 const {getFullFeed} = require("./controllers/feedController")
 
 
@@ -31,19 +34,25 @@ const app = express();
 // Mostly used in POST, PUT, PATCH requests when frontend/backend
 // sends data in JSON format.
 app.use(express.json())
+app.use(cookieParser())
 
 // app.get("/user",userAuth,(req,res) => {
 //     console.log("userDetails---",req.query)
 //     res.send({name:"phani",age:"25"})
 
 // })
-
-app.post("/signup",sigupAction)
+app.post("/login",loginValidation,loginAction)
+app.get("/profile",adminAuth,getProfileByCookie)
+app.post("/signup",signUpValidation ,sigupAction)
 
 app.get("/feed",getFullFeed)
 
 //get user by email
 app.get("/user",getUserByEmail)
+
+app.delete("/user",deleteUserById)
+
+app.patch("/user/:userId",updateUserDetails)
 
 app.use("/",(err,req,res,next) => {
     if(err){
