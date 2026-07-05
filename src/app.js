@@ -8,6 +8,9 @@ const {loginValidation} = require("./validations/loginValidation")
 const {signUpValidation} = require("./validations/signUpValidation")
 const {sigupAction,getUserByEmail,deleteUserById,updateUserDetails,loginAction,getProfileByCookie} = require("./controllers/userController")
 const {getFullFeed} = require("./controllers/feedController")
+const {authRouter} = require("../src/routes/auth")
+const {profileRouter} = require("../src/routes/profile");
+const { feedRouter } = require("./routes/feed");
 
 
 // Create an Express application instance
@@ -41,18 +44,18 @@ app.use(cookieParser())
 //     res.send({name:"phani",age:"25"})
 
 // })
-app.post("/login",loginValidation,loginAction)
-app.get("/profile",adminAuth,getProfileByCookie)
-app.post("/signup",signUpValidation ,sigupAction)
 
-app.get("/feed",getFullFeed)
 
-//get user by email
-app.get("/user",getUserByEmail)
+// app.post("/login",loginValidation,loginAction)
+
+app.use("/",authRouter)
+
+app.use("/",profileRouter)
+
+app.use("/",feedRouter)
 
 app.delete("/user",deleteUserById)
 
-app.patch("/user/:userId",updateUserDetails)
 
 app.use("/",(err,req,res,next) => {
     if(err){

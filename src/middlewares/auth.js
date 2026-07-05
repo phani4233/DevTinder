@@ -4,7 +4,6 @@ const User = require("../models/user")
 const adminAuth = async(req,res,next) => {
   try{
     const {token} = req.cookies
-    console.log("token----",token)
     if (!token){
       return res.status(400).json({
         success:false,

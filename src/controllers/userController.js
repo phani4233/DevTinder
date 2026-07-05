@@ -198,12 +198,12 @@ const deleteUserById = async(req,res) => {
     if(!req.body || Object.keys(req.body).length ===  0){
           return res.status(400).send("insuffient data")
       }
-    const userId = req.params?.userId;
     const userBody = req.body;
-    
+    console.log("userBody----",userBody)
+    const userId = req.user._id
+    console.log("userId----",userId)
     const ALLOWED_UPDATES = [
-      "photoUrl","about","gender","age","skills"
-    ]
+      "photoUrl","about","gender","age","skills","firstName","lastName"]
 
     const isUpdated = Object.keys(userBody).every((key) => ALLOWED_UPDATES.includes(key))
     if(!isUpdated){
