@@ -2,6 +2,8 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
+const crypto = require("crypto");
+
 
 
 const {Schema,model} = mongoose
@@ -31,6 +33,8 @@ const userSchema = new Schema({
         min: 18,
 
     },
+    passwordResetToken: {type:String},
+    passwordResetExpires: {type:Date},
     gender:{type:String,
         validate(value){
             if(!["male","female","others"].includes(value)){
@@ -62,6 +66,16 @@ const userSchema = new Schema({
 userSchema.methods.getJwt = async function () {
     const user = this;
     const token = jwt.sign({_id:user._id},"Phani!@34",{ expiresIn: '1d' })
+    return token
+}
+
+userSchema.methods.getPasswordResetToken = async function() {
+    const user = this;
+    const token  = crypto.randomBytes(32).toString("hex");
+    const hashedToken  = crypto.createHash("sha256").update(token).digest("hex")
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
     return token
 }
 
